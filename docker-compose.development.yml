@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  debugger:
+    build:
+      context: ./
+      target: dev
+    image: tizentube-debugger:dev
+    volumes:
+      - .:/app
+    command: npm run start:dev
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
