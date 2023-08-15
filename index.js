@@ -16,7 +16,7 @@ const tvSdbConnect = () => {
 
     tvSdb.connect(26101, Config.tvIP);
     reconnectionInterval = setTimeout(() => {
-        tvSdb.destroy({message: 'Reconnection timeout', code: 'ECONNRESET'});
+        tvSdb.destroy({message: 'Reconnection timeout', code: 'FORCED_RESET'});
     }, 5000);
 };
 
