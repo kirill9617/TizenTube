@@ -7,7 +7,18 @@ const wss = new WebSocketServer({ port: 3000 });
 const tvSdb = new Socket();
 let reconnectionInterval = null;
 
-const sendData = (hexData) => tvSdb.write(Buffer.from(hexData, 'hex'))
+const sendData = (hexData) => tvSdb.write(Buffer.from(hexData, 'hex'));
+const getTimestamp = () => new Date().toLocaleString('en-CA');
+const tvSdbConnect = () => {
+    if (Config.debug) {
+        console.log(getTimestamp(), "Trying to connect to TV...");
+    }
+
+    tvSdb.connect(26101, Config.tvIP);
+    reconnectionInterval = setTimeout(() => {
+        tvSdb.destroy({message: 'Reconnection timeout', code: 'ECONNRESET'});
+    }, 5000);
+};
 
 tvSdb.on('data', async data => {
     const dataString = data.toString();
@@ -34,22 +45,32 @@ tvSdb.on('data', async data => {
     }
 });
 
-tvSdb.connect(26101, Config.tvIP);
+tvSdb.on('error', (data) => {
+    if (Config.debug) {
+        console.log(getTimestamp(), data?.code ?? data);
+    }
+});
+
+tvSdbConnect();
 
 tvSdb.on('connect', () => {
     if (reconnectionInterval) {
-        clearInterval(reconnectionInterval);
+        clearTimeout(reconnectionInterval);
         reconnectionInterval = null;
+    }
+    if (Config.debug) {
+        console.log(getTimestamp(), "Connected to TV.");
     }
 
     sendData('434e584e00001000000004000700000032020000bcb1a7b1686f73743a3a00');
 });
 
-tvSdb.on('close', () => {
+tvSdb.on('close', (hadError) => {
     // Reconnect to the TV if something happens (like turning it off).
-    reconnectionInterval = setInterval(async () => {
-        tvSdb.connect(26101, Config.tvIP);
-    }, 5000);
+    if (Config.debug && !hadError) {
+        console.log(getTimestamp(), "Disconnected from TV.");
+    }
+    tvSdbConnect();
 });
 
 wss.on('connection', ws => {
