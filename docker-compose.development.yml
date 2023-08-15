@@ -5,6 +5,7 @@ services:
       context: ./
       target: dev
     image: tizentube-debugger:dev
+    container_name: tizentube-debugger
     volumes:
       - .:/app
     command: npm run start:dev

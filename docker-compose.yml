@@ -4,6 +4,8 @@ services:
     build:
       context: ./
       target: production
+    image: tizentube-debugger:latest
+    container_name: tizentube-debugger
     volumes:
       - ./config.json:/app/config.json
     command: npm run start
