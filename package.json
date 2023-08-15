@@ -5,7 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node ."
+    "setup:dev": "npm install -g nodemon && npm install && cd mods && npm install && npm run build",
+    "setup": "npm ci && cd mods && npm ci && npm run build",
+    "start": "node .",
+    "start:dev": "nodemon ."
   },
   "keywords": [],
   "author": "Reis Can",
