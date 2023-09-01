@@ -4,31 +4,64 @@
 </head>
 <body>
     <a style="color: white;" id="text">Please wait while TizenTube launches.</a>
+
+    </br>IP:   <input id="ip_input"></input>
+    </br>Port: <input id="port_input"></input>
+    </br> <button type="button" onclick="connect" >Connect</button>
     <script>
         // Change this with your own IP
-        var IP = '192.168.1.72';
-        var wsServer;
-        try {
-        	wsServer = new WebSocket('ws://' + IP + ':3000');
-        } catch (e) {
-        	document.getElementById('text').innerText = 'Could not connect.';
-        }
-        wsServer.onmessage = function (message) {
-            const msg = JSON.parse(message.data);
-            if (msg.ok) {
-                tizen.application.getCurrentApplication().exit();
+        var IP = 'pc.home.kirill9617.win';
+        var PORT = '3000';
+	if (!localStorage.ip){
+		localStorage.ip = IP;
+	}
+	if (!localStorage.port){
+		localStorage.port = PORT;
+	}
+        var ip_in = document.getElementById('ip_input')
+        var port_in = document.getElementById('port_input')
+	ip_in.value = localStorage.ip;
+	port_in.value = localStorage.port;
+	var interval;
+	function update_storage(){
+	}
+	function connect(){
+            var wsServer;
+	    var ip = ip_in.value;
+	    var port = port_in.value;
+	    localStorage.ip = ip;
+	    localStorage.port = port;
+	    try {
+        	wsServer = new WebSocket('ws://' + ip + ':'+port);
+	    } catch (e) {
+                document.getElementById('text').innerText = 'Could not connect.';
+	    }
+	
+            wsServer.onmessage = function (message) {
+                const msg = JSON.parse(message.data);
+                if (msg.ok) {
+    		    try {
+                        tizen.application.getCurrentApplication().exit();
+                    } catch (e) {
+                        document.getElementById('text').innerText = 'Connected.';
+		    }
+                }
             }
-        }
 
-        wsServer.onopen = function () {
-            wsServer.send(JSON.stringify({
-                e: 'launch'
-            }));
-        };
+            wsServer.onopen = function () {
+                wsServer.send(JSON.stringify({
+                    e: 'launch'
+                }));
+		clearInterval(interval);
+            };
 
-        setTimeout(function() {
-            document.getElementById('text').innerText = 'Timed out in 10 seconds.';
-        }, 10000);
+	    clearInterval(interval);
+            interval = setInterval(function() {
+                document.getElementById('text').innerText = 'Timed out in 10 seconds. Reconnecting...';
+	        connect();
+            }, 10000);
+	}
+	connect();
     </script>
 </body>
 </html>
