@@ -9,12 +9,13 @@ let reconnectionInterval = null;
 
 const sendData = (hexData) => tvSdb.write(Buffer.from(hexData, 'hex'));
 const getTimestamp = () => new Date().toLocaleString('en-CA');
-const tvSdbConnect = () => {
+//let tvIP = Config.tvIP;
+const tvSdbConnect = (tvIP) => {
     if (Config.debug) {
         console.log(getTimestamp(), "Trying to connect to TV...");
     }
 
-    tvSdb.connect(26101, Config.tvIP);
+    tvSdb.connect(26101, tvIP);
     reconnectionInterval = setTimeout(() => {
         tvSdb.destroy({message: 'Reconnection timeout', code: 'FORCED_RESET'});
     }, 5000);
@@ -51,7 +52,7 @@ tvSdb.on('error', (data) => {
     }
 });
 
-tvSdbConnect();
+//tvSdbConnect();
 
 tvSdb.on('connect', () => {
     if (reconnectionInterval) {
@@ -70,11 +71,15 @@ tvSdb.on('close', (hadError) => {
     if (Config.debug && !hadError) {
         console.log(getTimestamp(), "Disconnected from TV.");
     }
-    tvSdbConnect();
+//    tvSdbConnect();
 });
 
 wss.on('connection', ws => {
 
+    //console.log(ws._socket.remoteAddress)
+    let ip=ws._socket.remoteAddress
+    tvSdbConnect(ip);
+    
     ws.on('message', message => {
         let msg;
         try {
